@@ -4,17 +4,15 @@ import { useSelector, useDispatch } from "react-redux";
 import {
   getGoals,
   createGoal,
+  updateGoal,
   deleteGoal,
   reset,
 } from "../features/goals/goalSlice";
-import { logout } from "../features/auth/authSlice"; // ✅ Correct import
+import { logout } from "../features/auth/authSlice"; 
 import Spinner from "../components/Spinner";
 import {
   LogOut,
   Settings,
-  LayoutDashboard,
-  Search,
-  FileText,
   ChevronDown,
   User,
   Plus,
@@ -33,30 +31,24 @@ function Dashboard() {
   );
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isSidebarSettingsOpen, setIsSidebarSettingsOpen] = useState(false);
   const [view, setView] = useState("list");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [text, setText] = useState("");
-  const [goalToDelete, setGoalToDelete] = useState(null); // ✅ track goal for confirmation
+  const [goalToDelete, setGoalToDelete] = useState(null);
+  const [goalToEdit, setGoalToEdit] = useState(null); // track goal for editing
 
   const dropdownRef = useRef(null);
-  const sidebarRef = useRef(null);
 
-  // ✅ Logout function
   const onLogout = () => {
     dispatch(logout());
     dispatch(reset());
     navigate("/login");
   };
 
-  // Handle outside clicks for dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsDropdownOpen(false);
-      }
-      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
-        setIsSidebarSettingsOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -65,27 +57,35 @@ function Dashboard() {
 
   useEffect(() => {
     if (isError) console.error(message);
-    if (!user) {
-      navigate("/login");
-    } else {
-      dispatch(getGoals());
-    }
-    return () => {
-      dispatch(reset());
-    };
+    if (!user) navigate("/login");
+    else dispatch(getGoals());
+    return () => dispatch(reset());
   }, [user, navigate, isError, message, dispatch]);
 
   const handleAddTask = (e) => {
     e.preventDefault();
     if (text.trim() === "") return;
-    dispatch(createGoal({ text }));
+
+    if (goalToEdit) {
+      // Update existing goal
+      dispatch(updateGoal({ id: goalToEdit._id, text }));
+      setGoalToEdit(null);
+    } else {
+      // Create new goal
+      dispatch(createGoal({ text }));
+    }
+
     setText("");
     setIsModalOpen(false);
   };
 
-  const handleDeleteClick = (goalId) => {
-    setGoalToDelete(goalId); 
+  const handleEditClick = (goal) => {
+    setGoalToEdit(goal);
+    setText(goal.text);
+    setIsModalOpen(true);
   };
+
+  const handleDeleteClick = (goalId) => setGoalToDelete(goalId);
 
   const confirmDelete = () => {
     if (goalToDelete) {
@@ -94,26 +94,19 @@ function Dashboard() {
     }
   };
 
-  const cancelDelete = () => {
-    setGoalToDelete(null);
-  };
+  const cancelDelete = () => setGoalToDelete(null);
 
-  if (isLoading) {
-    return <Spinner />;
-  }
+  if (isLoading) return <Spinner />;
 
   return (
     <div className="flex w-screen h-screen bg-gray-100 overflow-hidden">
-      {/* Sidebar */}
-
       <Header />
 
-      {/* Main Content */}
       <main className="flex-1 p-6 overflow-y-auto">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-sm px-6 py-4 mb-6 flex justify-between items-center">
           <h2 className="text-2xl font-semibold text-gray-800">
-            Welcome back, {user && user.name} 👋
+            Welcome back, {user?.name} 👋
           </h2>
 
           {/* Profile Dropdown */}
@@ -187,7 +180,7 @@ function Dashboard() {
               </div>
 
               <button
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => { setGoalToEdit(null); setIsModalOpen(true); setText(""); }}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium shadow-md hover:shadow-lg hover:scale-105 transition-all"
               >
                 <Plus size={16} /> Add Task
@@ -211,7 +204,10 @@ function Dashboard() {
                       </p>
                     </div>
                     <div className="flex space-x-2">
-                      <button className="text-sm bg-green-100 text-green-600 px-2 py-1 rounded hover:bg-green-200 transition">
+                      <button
+                        onClick={() => handleEditClick(goal)}
+                        className="text-sm bg-green-100 text-green-600 px-2 py-1 rounded hover:bg-green-200 transition"
+                      >
                         Edit
                       </button>
                       <button
@@ -235,18 +231,18 @@ function Dashboard() {
         </div>
       </main>
 
-      {/* Add Task Modal */}
+      {/* Add/Edit Task Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-lg p-6 w-96 relative">
             <button
-              onClick={() => setIsModalOpen(false)}
+              onClick={() => { setIsModalOpen(false); setGoalToEdit(null); }}
               className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
             >
               <X size={20} />
             </button>
             <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              Add New Task
+              {goalToEdit ? "Edit Task" : "Add New Task"}
             </h2>
             <form onSubmit={handleAddTask} className="space-y-4">
               <input
@@ -260,14 +256,14 @@ function Dashboard() {
                 type="submit"
                 className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
               >
-                Add Task
+                {goalToEdit ? "Update Task" : "Add Task"}
               </button>
             </form>
           </div>
         </div>
       )}
 
-      {/* ✅ Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal */}
       {goalToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-lg p-6 w-96 text-center">

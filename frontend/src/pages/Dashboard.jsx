@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -7,6 +7,7 @@ import {
   deleteGoal,
   reset,
 } from "../features/goals/goalSlice";
+import { logout } from "../features/auth/authSlice"; // ✅ Correct import
 import Spinner from "../components/Spinner";
 import {
   LogOut,
@@ -18,6 +19,7 @@ import {
   User,
   Plus,
   X,
+  Trash2,
 } from "lucide-react";
 
 function Dashboard() {
@@ -30,21 +32,43 @@ function Dashboard() {
   );
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isSidebarSettingsOpen, setIsSidebarSettingsOpen] = useState(false);
   const [view, setView] = useState("list");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [text, setText] = useState("");
+  const [goalToDelete, setGoalToDelete] = useState(null); // ✅ track goal for confirmation
+
+  const dropdownRef = useRef(null);
+  const sidebarRef = useRef(null);
+
+  // ✅ Logout function
+  const onLogout = () => {
+    dispatch(logout());
+    dispatch(reset());
+    navigate("/login");
+  };
+
+  // Handle outside clicks for dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+        setIsSidebarSettingsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
-    if (isError) {
-      console.error(message);
-    }
-
+    if (isError) console.error(message);
     if (!user) {
       navigate("/login");
     } else {
       dispatch(getGoals());
     }
-
     return () => {
       dispatch(reset());
     };
@@ -58,12 +82,27 @@ function Dashboard() {
     setIsModalOpen(false);
   };
 
+  const handleDeleteClick = (goalId) => {
+    setGoalToDelete(goalId); // open confirmation modal
+  };
+
+  const confirmDelete = () => {
+    if (goalToDelete) {
+      dispatch(deleteGoal(goalToDelete));
+      setGoalToDelete(null);
+    }
+  };
+
+  const cancelDelete = () => {
+    setGoalToDelete(null);
+  };
+
   if (isLoading) {
     return <Spinner />;
   }
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex w-screen h-screen bg-gray-100 overflow-hidden">
       {/* Sidebar */}
       <aside className="w-64 bg-white shadow-sm flex flex-col justify-between p-4 transition-all">
         <div>
@@ -85,12 +124,39 @@ function Dashboard() {
           </nav>
         </div>
 
-        <div className="space-y-2 border-t pt-4">
-          <button className="w-full text-left py-2 px-3 rounded-lg flex items-center gap-2 text-gray-700 font-medium hover:bg-gray-100 transition-all">
-            <Settings size={16} /> Settings
-          </button>
+        {/* Bottom Settings + Logout */}
+        <div className="space-y-2 border-t pt-4 relative" ref={sidebarRef}>
+          <div className="relative">
+            <button
+              onClick={() => setIsSidebarSettingsOpen((prev) => !prev)}
+              className="w-full text-left py-2 px-3 rounded-lg flex items-center justify-between text-gray-700 font-medium hover:bg-gray-100 transition-all"
+            >
+              <span className="flex items-center gap-2">
+                <Settings size={16} /> Settings
+              </span>
+              <ChevronDown
+                size={14}
+                className={`transition-transform ${
+                  isSidebarSettingsOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {isSidebarSettingsOpen && (
+              <div className="absolute bottom-full mb-2 left-0 w-full bg-white border rounded-lg shadow-lg z-10 animate-fadeIn">
+                <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center gap-2">
+                  <User size={14} /> Profile Settings
+                </button>
+                <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center gap-2">
+                  <Settings size={14} /> Account Settings
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* ✅ Logout Button */}
           <button
-            onClick={() => navigate("/login")}
+            onClick={onLogout}
             className="w-full text-left py-2 px-3 rounded-lg flex items-center gap-2 text-gray-700 font-medium hover:bg-gray-100 transition-all"
           >
             <LogOut size={16} /> Log Out
@@ -106,8 +172,8 @@ function Dashboard() {
             Welcome back, {user && user.name} 👋
           </h2>
 
-          {/* Profile */}
-          <div className="relative">
+          {/* Profile Dropdown */}
+          <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex items-center gap-3 bg-white border rounded-lg px-3 py-2 shadow-sm hover:shadow-md transition-all"
@@ -137,7 +203,7 @@ function Dashboard() {
                   <Settings size={14} /> Account Settings
                 </button>
                 <button
-                  onClick={() => navigate("/login")}
+                  onClick={onLogout}
                   className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center gap-2"
                 >
                   <LogOut size={14} /> Log Out
@@ -153,7 +219,6 @@ function Dashboard() {
             <h3 className="text-lg font-semibold text-gray-800">My Tasks</h3>
 
             <div className="flex items-center gap-3">
-              {/* View Toggle */}
               <div className="flex gap-2">
                 <button
                   onClick={() => setView("list")}
@@ -177,7 +242,6 @@ function Dashboard() {
                 </button>
               </div>
 
-              {/* Add Task Button */}
               <button
                 onClick={() => setIsModalOpen(true)}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium shadow-md hover:shadow-lg hover:scale-105 transition-all"
@@ -207,10 +271,10 @@ function Dashboard() {
                         Edit
                       </button>
                       <button
-                        onClick={() => dispatch(deleteGoal(goal._id))}
-                        className="text-sm bg-red-100 text-red-600 px-2 py-1 rounded hover:bg-red-200 transition"
+                        onClick={() => handleDeleteClick(goal._id)}
+                        className="text-sm bg-red-100 text-red-600 px-2 py-1 rounded hover:bg-red-200 transition flex items-center gap-1"
                       >
-                        Delete
+                        <Trash2 size={14} /> Delete
                       </button>
                     </div>
                   </div>
@@ -227,7 +291,7 @@ function Dashboard() {
         </div>
       </main>
 
-      {/* Modal Form */}
+      {/* Add Task Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-lg p-6 w-96 relative">
@@ -255,6 +319,34 @@ function Dashboard() {
                 Add Task
               </button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ Delete Confirmation Modal */}
+      {goalToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-96 text-center">
+            <h2 className="text-lg font-semibold text-gray-800 mb-3">
+              Delete this task?
+            </h2>
+            <p className="text-sm text-gray-500 mb-5">
+              This action cannot be undone.
+            </p>
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={cancelDelete}
+                className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}

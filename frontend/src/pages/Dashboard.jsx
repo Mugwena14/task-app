@@ -21,6 +21,7 @@ import {
   X,
   Trash2,
 } from "lucide-react";
+import Header from '../components/Header'
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -83,7 +84,7 @@ function Dashboard() {
   };
 
   const handleDeleteClick = (goalId) => {
-    setGoalToDelete(goalId); // open confirmation modal
+    setGoalToDelete(goalId); 
   };
 
   const confirmDelete = () => {
@@ -104,65 +105,8 @@ function Dashboard() {
   return (
     <div className="flex w-screen h-screen bg-gray-100 overflow-hidden">
       {/* Sidebar */}
-      <aside className="w-64 bg-white shadow-sm flex flex-col justify-between p-4 transition-all">
-        <div>
-          <h1 className="text-xl font-bold text-blue-600 mb-8">TaskPro</h1>
-          <nav className="space-y-2">
-            {[
-              { icon: LayoutDashboard, label: "Dashboard" },
-              { icon: Search, label: "Search" },
-              { icon: FileText, label: "Documents" },
-            ].map(({ icon: Icon, label }) => (
-              <button
-                key={label}
-                className="w-full text-left py-2 px-3 rounded-lg flex items-center gap-2 text-gray-700 font-medium hover:bg-blue-50 hover:text-blue-600 transition-all"
-              >
-                <Icon size={16} />
-                {label}
-              </button>
-            ))}
-          </nav>
-        </div>
 
-        {/* Bottom Settings + Logout */}
-        <div className="space-y-2 border-t pt-4 relative" ref={sidebarRef}>
-          <div className="relative">
-            <button
-              onClick={() => setIsSidebarSettingsOpen((prev) => !prev)}
-              className="w-full text-left py-2 px-3 rounded-lg flex items-center justify-between text-gray-700 font-medium hover:bg-gray-100 transition-all"
-            >
-              <span className="flex items-center gap-2">
-                <Settings size={16} /> Settings
-              </span>
-              <ChevronDown
-                size={14}
-                className={`transition-transform ${
-                  isSidebarSettingsOpen ? "rotate-180" : ""
-                }`}
-              />
-            </button>
-
-            {isSidebarSettingsOpen && (
-              <div className="absolute bottom-full mb-2 left-0 w-full bg-white border rounded-lg shadow-lg z-10 animate-fadeIn">
-                <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center gap-2">
-                  <User size={14} /> Profile Settings
-                </button>
-                <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center gap-2">
-                  <Settings size={14} /> Account Settings
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* ✅ Logout Button */}
-          <button
-            onClick={onLogout}
-            className="w-full text-left py-2 px-3 rounded-lg flex items-center gap-2 text-gray-700 font-medium hover:bg-gray-100 transition-all"
-          >
-            <LogOut size={16} /> Log Out
-          </button>
-        </div>
-      </aside>
+      <Header />
 
       {/* Main Content */}
       <main className="flex-1 p-6 overflow-y-auto">

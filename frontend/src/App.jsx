@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard'
 import Documents from './pages/Document'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import NotFound from "./pages/NotFound";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
             <Route path='/login' element={<Login />} />
             <Route path='/' element={<Dashboard />} />
             <Route path='/documents' element={<Documents />} />
+            <Route path='*' element={<NotFound />} />
           </Routes>
         </div>
       </Router>

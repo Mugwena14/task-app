@@ -11,6 +11,18 @@ const goalSchema = mongoose.Schema(
       type: String,
       required: [true, 'Please add a text value'],
     },
+    //  AI / voice integration
+    source: {
+      type: String,
+      enum: ['manual', 'voice'], 
+      default: 'manual',
+    },
+    raw_text: {
+      type: String, 
+    },
+    audioReference: {
+      type: String, 
+    },
   },
   {
     timestamps: true,

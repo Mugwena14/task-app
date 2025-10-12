@@ -103,11 +103,11 @@ function Header() {
             <div className="absolute left-0 bottom-full mb-2 w-full bg-white border rounded-lg shadow-lg z-10 animate-fadeIn">
               <button
                 onClick={() => {
-                  navigate("/settings/profile");
+                  navigate("/profile");
                   setIsSidebarSettingsOpen(false);
                 }}
                 className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
-                  location.pathname === "/settings/profile"
+                  location.pathname === "/profile"
                     ? "bg-blue-50 text-blue-600"
                     : "hover:bg-gray-100 text-gray-700"
                 }`}
@@ -116,11 +116,11 @@ function Header() {
               </button>
               <button
                 onClick={() => {
-                  navigate("/settings/account");
+                  navigate("/account");
                   setIsSidebarSettingsOpen(false);
                 }}
                 className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${
-                  location.pathname === "/settings/account"
+                  location.pathname === "/account"
                     ? "bg-blue-50 text-blue-600"
                     : "hover:bg-gray-100 text-gray-700"
                 }`}

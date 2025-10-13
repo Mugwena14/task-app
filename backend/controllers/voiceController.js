@@ -5,42 +5,47 @@ const Goal = require('../models/goalModel')
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
-// Ensure folder exists
+// Ensure uploads folder exists
 const uploadDir = path.join(__dirname, '../uploads')
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir)
 
-// POST /api/voice || takes the recording and make it a task
+// POST /api/voice || takes the recording and makes it a task
 const transcribeAndCreateGoal = async (req, res) => {
   try {
-    if (!req.file) return res.status(400).json({ message: 'No audio file provided' })
+    if (!req.file) {
+      return res.status(400).json({ message: 'No audio file provided' })
+    }
 
-    // File path
     const filePath = path.resolve(req.file.path)
 
-    // Check if file actually exists
+    // Verify if uploaded file exists
     if (!fs.existsSync(filePath)) {
       return res.status(500).json({ message: 'Uploaded file not found' })
     }
 
-    // Transcribe audio using OpenAI Whisper
+    // Transcribe using GPT-4o Mini Transcribe
     const transcription = await openai.audio.transcriptions.create({
       file: fs.createReadStream(filePath),
-      model: 'whisper-1',
+      model: 'gpt-4o-mini-transcribe',
       response_format: 'text'
     })
 
-    const transcriptText = transcription.text.trim()
+    // Handle text or object response 
+    const transcriptText =
+      typeof transcription === 'string'
+        ? transcription.trim()
+        : (transcription.text || '').trim()
 
     // Create goal in MongoDB
     const newGoal = await Goal.create({
-      user: req.user.id,     
+      user: req.user.id,
       text: transcriptText,
       source: 'voice',
       raw_text: transcriptText,
-      audioReference: null      // deleted file, so keep null
+      audioReference: null // file deleted after processing
     })
 
-    // Delete the recording
+    // Delete temporary uploaded file
     fs.unlink(filePath, err => {
       if (err) console.error('Failed to delete audio file:', err)
     })
@@ -50,9 +55,8 @@ const transcribeAndCreateGoal = async (req, res) => {
       message: 'Goal created from voice successfully',
       goal: newGoal
     })
-
   } catch (error) {
-    console.error(error)
+    console.error('Full error:', error.response ? error.response.data : error.message)
     res.status(500).json({
       success: false,
       message: 'Error processing audio',

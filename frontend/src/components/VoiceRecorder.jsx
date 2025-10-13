@@ -5,7 +5,19 @@ const VoiceRecorder = ({ user, onRecorded, onClose }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [recorder, setRecorder] = useState(null);
   const [timer, setTimer] = useState(0);
-  const [isUploading, setIsUploading] = useState(false); // new state
+  const [isUploading, setIsUploading] = useState(false);
+
+  // --- Utility: Clean up AI-generated text ---
+  const formatGoalText = (text) => {
+    if (!text) return "";
+    let trimmed = text.trim();
+    if (!trimmed) return "";
+    // Capitalize first letter
+    trimmed = trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+    // Shorten long text (optional, 100 chars)
+    if (trimmed.length > 100) trimmed = trimmed.slice(0, 97) + "...";
+    return trimmed;
+  };
 
   useEffect(() => {
     let interval;
@@ -30,7 +42,7 @@ const VoiceRecorder = ({ user, onRecorded, onClose }) => {
         const formData = new FormData();
         formData.append("audio", blob, "recording.webm");
 
-        setIsUploading(true); // disable stop button during upload
+        setIsUploading(true);
 
         try {
           const res = await fetch("/api/voice", {
@@ -48,8 +60,8 @@ const VoiceRecorder = ({ user, onRecorded, onClose }) => {
           }
 
           if (res.ok && data?.success) {
-            console.log("✅ Voice task created:", data);
-            onRecorded?.(data);
+            const cleanText = formatGoalText(data.goal.text || "");
+            onRecorded?.({ success: true, goal: { text: cleanText } });
           } else {
             console.error("Voice upload failed:", data);
             alert(data?.message || "Failed to process voice. Try again.");
@@ -58,7 +70,7 @@ const VoiceRecorder = ({ user, onRecorded, onClose }) => {
           console.error("Upload error:", err);
           alert("Failed to process voice. Try again.");
         } finally {
-          setIsUploading(false); // re-enable stop button
+          setIsUploading(false);
           onClose?.();
         }
       };
@@ -101,7 +113,7 @@ const VoiceRecorder = ({ user, onRecorded, onClose }) => {
       </span>
       <button
         onClick={stopRecording}
-        disabled={isUploading} // disable while uploading
+        disabled={isUploading}
         className={`flex items-center gap-2 px-3 py-1 rounded-full transition ${
           isUploading
             ? "bg-gray-400 cursor-not-allowed text-white"

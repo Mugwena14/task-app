@@ -1,3 +1,4 @@
+// Dashboard.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
@@ -6,19 +7,12 @@ import {
   createGoal,
   updateGoal,
   deleteGoal,
+  toggleGoalCompletion,
   reset,
 } from "../features/goals/goalSlice";
 import { logout } from "../features/auth/authSlice";
 import Spinner from "../components/Spinner";
-import {
-  LogOut,
-  Settings,
-  ChevronDown,
-  User,
-  Plus,
-  X,
-  Trash2,
-} from "lucide-react";
+import { LogOut, Settings, ChevronDown, User, Plus, X, Trash2 } from "lucide-react";
 import Header from "../components/Header";
 import AddTaskOptions from "../components/AddTaskOptions";
 import VoiceRecorder from "../components/VoiceRecorder";
@@ -28,9 +22,7 @@ function Dashboard() {
   const dispatch = useDispatch();
 
   const { user } = useSelector((state) => state.auth);
-  const { goals, isLoading, isError, message } = useSelector(
-    (state) => state.goals
-  );
+  const { goals, isLoading, isError, message } = useSelector((state) => state.goals);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [view, setView] = useState("list");
@@ -98,6 +90,10 @@ function Dashboard() {
 
   const cancelDelete = () => setGoalToDelete(null);
 
+  const handleToggleComplete = (goal) => {
+    dispatch(toggleGoalCompletion({ id: goal._id, completed: !goal.completed }));
+  };
+
   if (isLoading) return <Spinner />;
 
   return (
@@ -123,12 +119,8 @@ function Dashboard() {
                 className="w-8 h-8 rounded-full"
               />
               <div className="text-left">
-                <p className="text-sm font-medium text-gray-800">
-                  {user?.name || "User"}
-                </p>
-                <p className="text-xs text-gray-500">
-                  {user?.email || "example@email.com"}
-                </p>
+                <p className="text-sm font-medium text-gray-800">{user?.name || "User"}</p>
+                <p className="text-xs text-gray-500">{user?.email || "example@email.com"}</p>
               </div>
               <ChevronDown size={16} className="text-gray-500" />
             </button>
@@ -156,7 +148,6 @@ function Dashboard() {
         <div className="bg-white rounded-2xl shadow-sm p-6">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-semibold text-gray-800">My Tasks</h3>
-
             <div className="flex items-center gap-3">
               <div className="flex gap-2">
                 <button
@@ -199,11 +190,25 @@ function Dashboard() {
                     key={goal._id}
                     className="bg-gray-50 shadow-sm rounded-lg p-4 flex justify-between items-center"
                   >
-                    <div>
-                      <p className="font-medium text-gray-800">{goal.text}</p>
-                      <p className="text-xs text-gray-500">
-                        {new Date(goal.createdAt).toLocaleString("en-US")}
-                      </p>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={goal.completed || false}
+                        onChange={() => handleToggleComplete(goal)}
+                        className="w-5 h-5 rounded border-gray-300"
+                      />
+                      <div>
+                        <p
+                          className={`font-medium text-gray-800 ${
+                            goal.completed ? "line-through text-gray-400" : ""
+                          }`}
+                        >
+                          {goal.text}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(goal.createdAt).toLocaleString("en-US")}
+                        </p>
+                      </div>
                     </div>
                     <div className="flex space-x-2">
                       <button
@@ -222,9 +227,7 @@ function Dashboard() {
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-sm">
-                  You have not set any goals.
-                </p>
+                <p className="text-gray-500 text-sm">You have not set any goals.</p>
               )}
             </div>
           ) : (
@@ -232,7 +235,7 @@ function Dashboard() {
           )}
         </div>
 
-        {/* Slide-Up for Add Task Options */}
+        {/* Add Task Options */}
         <AddTaskOptions
           open={showTaskOptions}
           onClose={() => setShowTaskOptions(false)}
@@ -258,14 +261,14 @@ function Dashboard() {
         )}
       </main>
 
-      {/* Add/Edit Task Modal */}
+      {/* Add/Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-lg p-6 w-96 relative">
             <button
               onClick={() => {
-                setIsModalOpen(false);
-                setGoalToEdit(null);
+                setIsModalOpen(false)
+                setGoalToEdit(null)
               }}
               className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
             >
@@ -297,12 +300,8 @@ function Dashboard() {
       {goalToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-lg p-6 w-96 text-center">
-            <h2 className="text-lg font-semibold text-gray-800 mb-3">
-              Delete this task?
-            </h2>
-            <p className="text-sm text-gray-500 mb-5">
-              This action cannot be undone.
-            </p>
+            <h2 className="text-lg font-semibold text-gray-800 mb-3">Delete this task?</h2>
+            <p className="text-sm text-gray-500 mb-5">This action cannot be undone.</p>
             <div className="flex justify-center gap-4">
               <button
                 onClick={cancelDelete}

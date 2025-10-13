@@ -30,6 +30,7 @@ const deleteGoal = async (goalId, token) => {
 }
 
 // Update user goal
+// Can update both text or completed status
 const updateGoal = async (goalId, goalData, token) => {
   const config = {
     headers: { Authorization: `Bearer ${token}` },

@@ -272,3 +272,7 @@ function Documents() {
 }
 
 export default Documents;
+
+// Tech Stack: React + Node + Express + MongoDB + OpenAI API (GPT-4o Mini for audio transcription).
+// Key Features: File uploads, real-time transcription, and asynchronous processing pipeline.
+// Goal: MVP designed to demonstrate full-stack problem-solving, API integration, and user experience optimization.

@@ -5,6 +5,7 @@ const VoiceRecorder = ({ user, onRecorded, onClose }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [recorder, setRecorder] = useState(null);
   const [timer, setTimer] = useState(0);
+  const [isUploading, setIsUploading] = useState(false); // new state
 
   useEffect(() => {
     let interval;
@@ -23,10 +24,13 @@ const VoiceRecorder = ({ user, onRecorded, onClose }) => {
       const chunks = [];
 
       mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+
       mediaRecorder.onstop = async () => {
         const blob = new Blob(chunks, { type: "audio/webm" });
         const formData = new FormData();
         formData.append("audio", blob, "recording.webm");
+
+        setIsUploading(true); // disable stop button during upload
 
         try {
           const res = await fetch("/api/voice", {
@@ -35,16 +39,27 @@ const VoiceRecorder = ({ user, onRecorded, onClose }) => {
             body: formData,
           });
 
-          const data = await res.json();
-          if (res.ok) {
+          let data = null;
+          try {
+            data = await res.json();
+          } catch (err) {
+            console.error("Failed to parse JSON:", err);
+            data = { success: false, message: "Invalid server response" };
+          }
+
+          if (res.ok && data?.success) {
             console.log("✅ Voice task created:", data);
             onRecorded?.(data);
           } else {
             console.error("Voice upload failed:", data);
-            alert("Failed to process voice. Try again.");
+            alert(data?.message || "Failed to process voice. Try again.");
           }
         } catch (err) {
           console.error("Upload error:", err);
+          alert("Failed to process voice. Try again.");
+        } finally {
+          setIsUploading(false); // re-enable stop button
+          onClose?.();
         }
       };
 
@@ -59,10 +74,9 @@ const VoiceRecorder = ({ user, onRecorded, onClose }) => {
   };
 
   const stopRecording = () => {
-    if (recorder) {
+    if (recorder && !isUploading) {
       recorder.stop();
       setIsRecording(false);
-      onClose?.();
     }
   };
 
@@ -71,7 +85,6 @@ const VoiceRecorder = ({ user, onRecorded, onClose }) => {
     return () => {
       if (recorder && recorder.state !== "inactive") recorder.stop();
     };
-    
   }, []);
 
   const formatTime = (seconds) => {
@@ -80,21 +93,25 @@ const VoiceRecorder = ({ user, onRecorded, onClose }) => {
     return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
   };
 
-    return (
+  return (
     <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-white shadow-lg rounded-full flex items-center gap-4 px-6 py-3 border animate-fadeIn z-50">
-        <Mic className="text-red-500 animate-pulse" />
-        <span className="text-gray-700 text-sm font-medium">
-        Recording... {formatTime(timer)}
-        </span>
-        <button
+      <Mic className={`text-red-500 ${isRecording ? "animate-pulse" : ""}`} />
+      <span className="text-gray-700 text-sm font-medium">
+        {isRecording ? `Recording... ${formatTime(timer)}` : "Processing..."}
+      </span>
+      <button
         onClick={stopRecording}
-        className="flex items-center gap-2 bg-red-500 text-white px-3 py-1 rounded-full hover:bg-red-600 transition"
-        >
+        disabled={isUploading} // disable while uploading
+        className={`flex items-center gap-2 px-3 py-1 rounded-full transition ${
+          isUploading
+            ? "bg-gray-400 cursor-not-allowed text-white"
+            : "bg-red-500 text-white hover:bg-red-600"
+        }`}
+      >
         <Square size={14} /> Stop
-        </button>
+      </button>
     </div>
-    );
-
+  );
 };
 
 export default VoiceRecorder;

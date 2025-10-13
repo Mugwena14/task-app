@@ -8,7 +8,7 @@ import {
   deleteGoal,
   reset,
 } from "../features/goals/goalSlice";
-import { logout } from "../features/auth/authSlice"; 
+import { logout } from "../features/auth/authSlice";
 import Spinner from "../components/Spinner";
 import {
   LogOut,
@@ -19,7 +19,9 @@ import {
   X,
   Trash2,
 } from "lucide-react";
-import Header from '../components/Header'
+import Header from "../components/Header";
+import AddTaskOptions from "../components/AddTaskOptions";
+import VoiceRecorder from "../components/VoiceRecorder";
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -35,7 +37,9 @@ function Dashboard() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [text, setText] = useState("");
   const [goalToDelete, setGoalToDelete] = useState(null);
-  const [goalToEdit, setGoalToEdit] = useState(null); // track goal for editing
+  const [goalToEdit, setGoalToEdit] = useState(null);
+  const [showTaskOptions, setShowTaskOptions] = useState(false);
+  const [showRecorder, setShowRecorder] = useState(false);
 
   const dropdownRef = useRef(null);
 
@@ -67,11 +71,9 @@ function Dashboard() {
     if (text.trim() === "") return;
 
     if (goalToEdit) {
-      // Update existing goal
       dispatch(updateGoal({ id: goalToEdit._id, text }));
       setGoalToEdit(null);
     } else {
-      // Create new goal
       dispatch(createGoal({ text }));
     }
 
@@ -180,7 +182,7 @@ function Dashboard() {
               </div>
 
               <button
-                onClick={() => { setGoalToEdit(null); setIsModalOpen(true); setText(""); }}
+                onClick={() => setShowTaskOptions(true)}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium shadow-md hover:shadow-lg hover:scale-105 transition-all"
               >
                 <Plus size={16} /> Add Task
@@ -229,6 +231,31 @@ function Dashboard() {
             <div className="text-gray-500 text-sm">Board view coming soon...</div>
           )}
         </div>
+
+        {/* Slide-Up for Add Task Options */}
+        <AddTaskOptions
+          open={showTaskOptions}
+          onClose={() => setShowTaskOptions(false)}
+          onSelect={(option) => {
+            setShowTaskOptions(false);
+            if (option === "manual") {
+              setGoalToEdit(null);
+              setText("");
+              setIsModalOpen(true);
+            } else if (option === "voice") {
+              setShowRecorder(true);
+            }
+          }}
+        />
+
+        {/* Voice Recorder */}
+        {showRecorder && (
+          <VoiceRecorder
+            user={user}
+            onRecorded={() => dispatch(getGoals())}
+            onClose={() => setShowRecorder(false)}
+          />
+        )}
       </main>
 
       {/* Add/Edit Task Modal */}
@@ -236,7 +263,10 @@ function Dashboard() {
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-lg p-6 w-96 relative">
             <button
-              onClick={() => { setIsModalOpen(false); setGoalToEdit(null); }}
+              onClick={() => {
+                setIsModalOpen(false);
+                setGoalToEdit(null);
+              }}
               className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
             >
               <X size={20} />

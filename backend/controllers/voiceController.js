@@ -1,46 +1,53 @@
 const fs = require('fs')
-const OpenAI = require('openai')
 const path = require('path')
+const OpenAI = require('openai')
 const Goal = require('../models/goalModel')
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
 
-// POST /api/voice/transcribe
+// Ensure folder exists
+const uploadDir = path.join(__dirname, '../uploads')
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir)
+
+// POST /api/voice || takes the recording and make it a task
 const transcribeAndCreateGoal = async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ message: 'No audio file provided' })
-    }
+    if (!req.file) return res.status(400).json({ message: 'No audio file provided' })
 
+    // File path
     const filePath = path.resolve(req.file.path)
 
-    // Transcribing audio using Whisper
+    // Check if file actually exists
+    if (!fs.existsSync(filePath)) {
+      return res.status(500).json({ message: 'Uploaded file not found' })
+    }
+
+    // Transcribe audio using OpenAI Whisper
     const transcription = await openai.audio.transcriptions.create({
       file: fs.createReadStream(filePath),
       model: 'whisper-1',
-      response_format: 'text',
+      response_format: 'text'
     })
 
     const transcriptText = transcription.text.trim()
 
-    // Create a new Goal in MongoDB
+    // Create goal in MongoDB
     const newGoal = await Goal.create({
-      user: req.user.id,        
-      text: transcriptText,     
-      source: 'voice',          
-      raw_text: transcriptText, 
-      audioReference: null // deleted after creation
+      user: req.user.id,     
+      text: transcriptText,
+      source: 'voice',
+      raw_text: transcriptText,
+      audioReference: null      // deleted file, so keep null
     })
 
-    // Delete the audio vn
+    // Delete the recording
     fs.unlink(filePath, err => {
-      if (err) console.error('Error deleting audio file:', err)
+      if (err) console.error('Failed to delete audio file:', err)
     })
 
-    // Response
     res.status(201).json({
       success: true,
-      message: 'Goal created successfully from voice',
+      message: 'Goal created from voice successfully',
       goal: newGoal
     })
 

@@ -9,6 +9,7 @@ import {
   Search,
   ChevronDown,
   User,
+  StickyNote,
 } from "lucide-react";
 import { logout } from "../features/auth/authSlice";
 import { reset } from "../features/goals/goalSlice";
@@ -43,6 +44,7 @@ function Header() {
     { icon: LayoutDashboard, label: "Dashboard", path: "/" },
     { icon: Search, label: "Search", path: "/search" },
     { icon: FileText, label: "Documents", path: "/documents" },
+    { icon: StickyNote, label: "Notes", path: "/notes" }, 
   ];
 
   return (

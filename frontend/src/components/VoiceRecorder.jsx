@@ -7,14 +7,14 @@ const VoiceRecorder = ({ user, onRecorded, onClose }) => {
   const [timer, setTimer] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
 
-  // --- Utility: Clean up AI-generated text ---
+  // Clean up AI-generated text
   const formatGoalText = (text) => {
     if (!text) return "";
     let trimmed = text.trim();
     if (!trimmed) return "";
     // Capitalize first letter
     trimmed = trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
-    // Shorten long text (optional, 100 chars)
+    // Shorten long text
     if (trimmed.length > 100) trimmed = trimmed.slice(0, 97) + "...";
     return trimmed;
   };
@@ -79,7 +79,7 @@ const VoiceRecorder = ({ user, onRecorded, onClose }) => {
       setRecorder(mediaRecorder);
       setIsRecording(true);
     } catch (error) {
-      console.error("🎙️ Error starting recording:", error);
+      console.error("Error starting recording:", error);
       alert("Please allow microphone access.");
       onClose?.();
     }

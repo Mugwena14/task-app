@@ -19,7 +19,7 @@ const apiInstance = new SibApiV3Sdk.TransactionalEmailsApi()
  */
 const sendEmail = async (to, subject, htmlContent) => {
   const emailData = {
-    sender: { name: 'Langavi App', email: 'mlangaviclyde@gmail.com' }, 
+    sender: { name: 'TaskPro', email: 'mlangaviclyde@gmail.com' }, 
     to: [{ email: to }],
     subject,
     htmlContent,

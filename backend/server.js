@@ -16,9 +16,10 @@ app.use(express.urlencoded({ extended: false }));
 app.use('/api/goals', require('./routes/goalRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/documents', require('./routes/documentRoutes'));
-app.use('/api/voice', require('./routes/voiceRoutes'))
+app.use('/api/voice', require('./routes/voiceRoutes'));
+app.use('/api/notes', require('./routes/noteRoutes'));
 
-// Server frontend
+// Serve frontend
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../frontend/build')));
 

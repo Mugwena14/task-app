@@ -2,6 +2,7 @@ const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
 const asyncHandler = require('express-async-handler')
 const User = require('../models/userModel')
+const { sendEmail } = require('../utils/sendEmail') // destructured correctly
 
 // @desc    Register new user
 // @route   POST /api/users
@@ -34,6 +35,23 @@ const registerUser = asyncHandler(async (req, res) => {
   })
 
   if (user) {
+    // Send welcome email 
+    const htmlContent = `
+      <div style="font-family: sans-serif; padding: 20px;">
+        <h2>Welcome to TaskPro, ${name}! 🎉</h2>
+        <p>Your account has been successfully created.</p>
+        <p>We’re glad to have you on board. Let's get started 🚀</p>
+      </div>
+    `
+
+    // Logging
+    sendEmail(user.email, 'Welcome to TaskPro 🎉', htmlContent)
+      .then(() => console.log(`✅ Welcome email sent to ${user.email}`))
+      .catch((err) =>
+        console.error('❌ Failed to send welcome email:', err.message)
+      )
+
+    // User info
     res.status(201).json({
       _id: user.id,
       name: user.name,

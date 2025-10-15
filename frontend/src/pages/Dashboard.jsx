@@ -15,6 +15,7 @@ import { LogOut, Settings, ChevronDown, User, Plus, X, Trash2 } from "lucide-rea
 import Header from "../components/Header";
 import AddTaskOptions from "../components/AddTaskOptions";
 import VoiceRecorder from "../components/VoiceRecorder";
+import BoardView from "../components/BoardView"; 
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ function Dashboard() {
   const { goals, isLoading, isError, message } = useSelector((state) => state.goals);
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [view, setView] = useState("list");
+  const [view, setView] = useState("list"); 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [text, setText] = useState("");
   const [goalToDelete, setGoalToDelete] = useState(null);
@@ -180,7 +181,7 @@ function Dashboard() {
             </div>
           </div>
 
-          {/* Task List */}
+          {/* Task List or Board */}
           {view === "list" ? (
             <div className="space-y-4">
               {goals.length > 0 ? (
@@ -230,7 +231,7 @@ function Dashboard() {
               )}
             </div>
           ) : (
-            <div className="text-gray-500 text-sm">Board view coming soon...</div>
+            <BoardView goals={goals} onEdit={handleEditClick} onDelete={handleDeleteClick} />
           )}
         </div>
 
@@ -266,8 +267,8 @@ function Dashboard() {
           <div className="bg-white rounded-xl shadow-lg p-6 w-96 relative">
             <button
               onClick={() => {
-                setIsModalOpen(false)
-                setGoalToEdit(null)
+                setIsModalOpen(false);
+                setGoalToEdit(null);
               }}
               className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
             >

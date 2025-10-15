@@ -1,5 +1,11 @@
 const asyncHandler = require('express-async-handler')
+const OpenAI = require('openai')
 const Note = require('../models/noteModel')
+
+// Initialize OpenAI client
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+})
 
 // @desc    Get all notes for the logged-in user
 // @route   GET /api/notes
@@ -75,9 +81,58 @@ const deleteNote = asyncHandler(async (req, res) => {
     res.status(200).json({ id: req.params.id })
 })
 
+// @desc    Summarize a note using GPT-4o-mini
+// @route   POST /api/notes/:id/summarize
+// @access  Private
+const summarizeNote = asyncHandler(async (req, res) => {
+    const note = await Note.findById(req.params.id)
+
+    if (!note) {
+        res.status(404)
+        throw new Error('Note not found')
+    }
+
+    // Check ownership
+    if (note.user.toString() !== req.user.id) {
+        res.status(401)
+        throw new Error('Not authorized to summarize this note')
+    }
+
+    try {
+        const completion = await openai.chat.completions.create({
+            model: 'gpt-4o-mini',
+            messages: [
+                {
+                    role: 'system',
+                    content:
+                        'You are a helpful assistant that summarizes notes clearly and concisely in 2–4 sentences.',
+                },
+                {
+                    role: 'user',
+                    content: `Summarize the following note:\n\n${note.content}`,
+                },
+            ],
+            temperature: 0.3,
+            max_tokens: 150,
+        })
+
+        const summary = completion.choices[0].message.content.trim()
+
+        res.status(200).json({
+            success: true,
+            summary,
+        })
+    } catch (error) {
+        console.error('Summarization error:', error)
+        res.status(500)
+        throw new Error('Failed to summarize note')
+    }
+})
+
 module.exports = {
     getNotes,
     createNote,
     updateNote,
     deleteNote,
+    summarizeNote, 
 }

@@ -15,6 +15,10 @@ const noteSchema = mongoose.Schema(
         type: String,
         required: [true, 'Please add some content'],
         },
+        summary: {
+        type: String,
+        default: '', 
+        },
     },
     {
         timestamps: true,

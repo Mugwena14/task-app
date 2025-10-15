@@ -5,7 +5,8 @@ const {
     createNote,
     updateNote,
     deleteNote,
-    summarizeNote, 
+    summarizeNote,
+    restoreOriginal,
 } = require('../controllers/noteController')
 
 const { protect } = require('../middleware/authMiddleware')
@@ -17,6 +18,9 @@ router.route('/').get(protect, getNotes).post(protect, createNote)
 router.route('/:id').put(protect, updateNote).delete(protect, deleteNote)
 
 // Summarize a Note
-router.route('/:id/summarize').post(protect, summarizeNote) 
+router.route('/:id/summarize').post(protect, summarizeNote)
+
+// Restore Original Note (clear the summary)
+router.route('/:id/restore').post(protect, restoreOriginal)
 
 module.exports = router

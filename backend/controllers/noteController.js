@@ -2,131 +2,138 @@ const asyncHandler = require('express-async-handler')
 const OpenAI = require('openai')
 const Note = require('../models/noteModel')
 
-// Initialize OpenAI client
 const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY,
 })
 
-// @desc    Get all notes for the logged-in user
-// @route   GET /api/notes
-// @access  Private
+// @desc Get notes
 const getNotes = asyncHandler(async (req, res) => {
-    const notes = await Note.find({ user: req.user.id }).sort({ updatedAt: -1 })
-    res.status(200).json(notes)
+  const notes = await Note.find({ user: req.user.id }).sort({ updatedAt: -1 })
+  res.status(200).json(notes)
 })
 
-// @desc    Create a new note
-// @route   POST /api/notes
-// @access  Private
+// @desc Create note
 const createNote = asyncHandler(async (req, res) => {
-    const { title, content } = req.body
+  const { title, content } = req.body
 
-    if (!title || !content) {
-        res.status(400)
-        throw new Error('Please provide both title and content')
-    }
+  if (!title || !content) {
+    res.status(400)
+    throw new Error('Please provide both title and content')
+  }
 
-    const note = await Note.create({
-        user: req.user.id,
-        title,
-        content,
-    })
+  const note = await Note.create({
+    user: req.user.id,
+    title,
+    content,
+  })
 
-    res.status(201).json(note)
+  res.status(201).json(note)
 })
 
-// @desc    Update a note
-// @route   PUT /api/notes/:id
-// @access  Private
+// @desc Update note
 const updateNote = asyncHandler(async (req, res) => {
-    const note = await Note.findById(req.params.id)
+  const note = await Note.findById(req.params.id)
 
-    if (!note) {
-        res.status(404)
-        throw new Error('Note not found')
-    }
+  if (!note) {
+    res.status(404)
+    throw new Error('Note not found')
+  }
 
-    // Check user ownership
-    if (note.user.toString() !== req.user.id) {
-        res.status(401)
-        throw new Error('Not authorized')
-    }
+  if (note.user.toString() !== req.user.id) {
+    res.status(401)
+    throw new Error('Not authorized')
+  }
 
-    const updatedNote = await Note.findByIdAndUpdate(req.params.id, req.body, {
-        new: true,
-    })
+  const updatedNote = await Note.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+  })
 
-    res.status(200).json(updatedNote)
+  res.status(200).json(updatedNote)
 })
 
-// @desc    Delete a note
-// @route   DELETE /api/notes/:id
-// @access  Private
+// @desc Delete note
 const deleteNote = asyncHandler(async (req, res) => {
-    const note = await Note.findById(req.params.id)
+  const note = await Note.findById(req.params.id)
 
-    if (!note) {
-        res.status(404)
-        throw new Error('Note not found')
-    }
+  if (!note) {
+    res.status(404)
+    throw new Error('Note not found')
+  }
 
-    // Check user ownership
-    if (note.user.toString() !== req.user.id) {
-        res.status(401)
-        throw new Error('Not authorized')
-    }
+  if (note.user.toString() !== req.user.id) {
+    res.status(401)
+    throw new Error('Not authorized')
+  }
 
-    await note.deleteOne()
+  await note.deleteOne()
 
-    res.status(200).json({ id: req.params.id })
+  res.status(200).json({ id: req.params.id })
 })
 
-// @desc    Summarize a note using GPT-4o-mini
-// @route   POST /api/notes/:id/summarize
-// @access  Private
+// @desc Summarize note using OpenAI
 const summarizeNote = asyncHandler(async (req, res) => {
-    const note = await Note.findById(req.params.id)
+  const note = await Note.findById(req.params.id)
 
-    if (!note) {
-        res.status(404)
-        throw new Error('Note not found')
-    }
+  if (!note) {
+    res.status(404)
+    throw new Error('Note not found')
+  }
 
-    // Check ownership
-    if (note.user.toString() !== req.user.id) {
-        res.status(401)
-        throw new Error('Not authorized to summarize this note')
-    }
+  if (note.user.toString() !== req.user.id) {
+    res.status(401)
+    throw new Error('Not authorized')
+  }
 
-    try {
-        const completion = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
-            messages: [
-                {
-                    role: 'system',
-                    content:
-                        'You are a helpful assistant that summarizes notes clearly and concisely in 2–4 sentences.',
-                },
-                {
-                    role: 'user',
-                    content: `Summarize the following note:\n\n${note.content}`,
-                },
-            ],
-            temperature: 0.3,
-            max_tokens: 150,
-        })
+  console.log('Summarizing note:', note._id)
 
-        const summary = completion.choices[0].message.content.trim()
+  const completion = await openai.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [
+      { role: 'system', content: 'You summarize notes concisely and clearly.' },
+      { role: 'user', content: `Summarize this note:\n\n${note.content}` },
+    ],
+    temperature: 0.5,
+    max_tokens: 200,
+  })
 
-        res.status(200).json({
-            success: true,
-            summary,
-        })
-    } catch (error) {
-        console.error('Summarization error:', error)
-        res.status(500)
-        throw new Error('Failed to summarize note')
-    }
+  const summary = completion.choices?.[0]?.message?.content?.trim()
+  if (!summary) {
+    res.status(500)
+    throw new Error('No summary generated')
+  }
+
+  note.summary = summary
+  await note.save()
+
+  res.status(200).json({
+    success: true,
+    message: 'Note summarized successfully',
+    note,
+  })
+})
+
+// @desc Restore original note
+const restoreOriginal = asyncHandler(async (req, res) => {
+  const note = await Note.findById(req.params.id)
+
+  if (!note) {
+    res.status(404)
+    throw new Error('Note not found')
+  }
+
+  if (note.user.toString() !== req.user.id) {
+    res.status(401)
+    throw new Error('Not authorized')
+  }
+
+  note.summary = ''
+  await note.save()
+
+  res.status(200).json({
+    success: true,
+    message: 'Original note restored successfully',
+    note,
+  })
 })
 
 module.exports = {
@@ -134,5 +141,6 @@ module.exports = {
     createNote,
     updateNote,
     deleteNote,
-    summarizeNote, 
+    summarizeNote,
+    restoreOriginal,
 }

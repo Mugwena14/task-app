@@ -6,6 +6,8 @@ import {
     createNote,
     updateNote,
     deleteNote,
+    summarizeNote,
+    restoreOriginal,
     reset,
 } from "../features/notes/noteSlice";
 import { logout } from "../features/auth/authSlice";
@@ -21,6 +23,7 @@ import {
     StickyNote,
     Save,
     Sparkles,
+    RotateCcw,
 } from "lucide-react";
 import Header from "../components/Header";
 import Spinner from "../components/Spinner";
@@ -40,7 +43,7 @@ function Notes() {
     const [noteTitle, setNoteTitle] = useState("");
     const [noteContent, setNoteContent] = useState("");
     const [noteToDelete, setNoteToDelete] = useState(null);
-    const [loadingSummaryId, setLoadingSummaryId] = useState(null);
+    const [loadingNoteId, setLoadingNoteId] = useState(null);
     const dropdownRef = useRef(null);
 
     // Logout
@@ -75,71 +78,71 @@ function Notes() {
         };
     }, [user, navigate, isError, message, dispatch]);
 
-    // Save or update note
-    const handleSaveNote = (e) => {
-        e.preventDefault();
-        if (!noteTitle.trim() || !noteContent.trim()) return;
-
-        if (editingNote) {
-            dispatch(
-                updateNote({
-                    id: editingNote._id,
-                    noteData: { title: noteTitle, content: noteContent },
-                })
-            );
-        } else {
-            dispatch(createNote({ title: noteTitle, content: noteContent }));
-        }
-
-        setNoteTitle("");
-        setNoteContent("");
-        setEditingNote(null);
-        setIsModalOpen(false);
-    };
-
-    // Edit
+    // Edit note
     const handleEdit = (note) => {
         setEditingNote(note);
         setNoteTitle(note.title);
-        setNoteContent(note.content);
+        setNoteContent(note.summary ? note.content.replace(/^Summary: /, "") : note.content);
         setIsModalOpen(true);
     };
 
-    // Delete
+    // Save or update note
+    const handleSaveNote = async (e) => {
+        e.preventDefault();
+        if (!noteTitle.trim() || !noteContent.trim()) return;
+
+        try {
+            if (editingNote) {
+                await dispatch(
+                    updateNote({
+                        id: editingNote._id,
+                        noteData: { title: noteTitle, content: noteContent },
+                    })
+                ).unwrap();
+            } else {
+                await dispatch(
+                    createNote({ title: noteTitle, content: noteContent })
+                ).unwrap();
+            }
+
+            setNoteTitle("");
+            setNoteContent("");
+            setEditingNote(null);
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error("Failed to save/update note:", error);
+        }
+    };
+
+    // Delete note
     const handleDelete = (id) => setNoteToDelete(id);
     const confirmDelete = () => {
         dispatch(deleteNote(noteToDelete));
         setNoteToDelete(null);
     };
 
-    // Summarize 
+    // Summarize note
     const handleSummarize = async (note) => {
-        setLoadingSummaryId(note._id);
+        setLoadingNoteId(note._id);
+        try {
+            await dispatch(summarizeNote(note._id)).unwrap();
+        } catch (error) {
+            console.error("Failed to summarize:", error);
+        } finally {
+            setLoadingNoteId(null);
+        }
+    };
 
-        // Simulate delay like an API call
-        await new Promise((r) => setTimeout(r, 1200));
-
-        // Mock summary logic (replace this later with an AI summary)
-        const words = note.content.split(" ");
-        const summary =
-            words.length > 40
-                ? "Summary: " +
-                  words
-                      .slice(0, 25)
-                      .join(" ")
-                      .replace(/[.,!?;:]$/, "") +
-                  " ... (shortened for clarity)"
-                : "Summary: " + note.content;
-
-        // Update note content directly in backend and UI
-        dispatch(
-            updateNote({
-                id: note._id,
-                noteData: { title: note.title, content: summary },
-            })
-        );
-
-        setLoadingSummaryId(null);
+    // Restore original note
+    const handleRestoreOriginal = async (note) => {
+        setLoadingNoteId(note._id);
+        try {
+            await dispatch(restoreOriginal(note._id)).unwrap();
+        } catch (error) {
+            console.error("Failed to restore original:", error);
+        } finally {
+            setLoadingNoteId(null);
+        }
     };
 
     if (isLoading) return <Spinner />;
@@ -227,26 +230,38 @@ function Notes() {
                                             </h4>
                                         </div>
                                         <p className="text-sm text-gray-700 whitespace-pre-line">
-                                            {note.content}
+                                            {note.summary || note.content}
                                         </p>
                                     </div>
 
                                     <div className="flex justify-between items-center mt-3 text-xs text-gray-500">
                                         <p>{new Date(note.createdAt).toLocaleString("en-US")}</p>
                                         <div className="flex gap-2">
-                                            <button
-                                                onClick={() => handleSummarize(note)}
-                                                className="p-1 hover:bg-gray-200 rounded-md text-purple-600 flex items-center gap-1"
-                                                disabled={loadingSummaryId === note._id}
-                                            >
-                                                {loadingSummaryId === note._id ? (
-                                                    <span className="animate-pulse">Summarizing...</span>
-                                                ) : (
-                                                    <>
-                                                        <Sparkles size={14} /> Summarize
-                                                    </>
-                                                )}
-                                            </button>
+                                            {!note.summary ? (
+                                                <button
+                                                    onClick={() => handleSummarize(note)}
+                                                    className="p-1 hover:bg-gray-200 rounded-md text-purple-600 flex items-center gap-1"
+                                                    disabled={loadingNoteId === note._id}
+                                                >
+                                                    {loadingNoteId === note._id ? (
+                                                        <span className="animate-pulse">
+                                                            Summarizing...
+                                                        </span>
+                                                    ) : (
+                                                        <>
+                                                            <Sparkles size={14} /> Summarize
+                                                        </>
+                                                    )}
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={() => handleRestoreOriginal(note)}
+                                                    className="p-1 hover:bg-gray-200 rounded-md text-green-600 flex items-center gap-1"
+                                                    disabled={loadingNoteId === note._id}
+                                                >
+                                                    <RotateCcw size={14} /> Original
+                                                </button>
+                                            )}
                                             <button
                                                 onClick={() => handleEdit(note)}
                                                 className="p-1 hover:bg-gray-200 rounded-md"
@@ -304,8 +319,7 @@ function Notes() {
                                 type="submit"
                                 className="w-full bg-purple-600 text-white py-2 rounded-lg hover:bg-purple-700 transition flex items-center justify-center gap-2"
                             >
-                                <Save size={16} />{" "}
-                                {editingNote ? "Update Note" : "Save Note"}
+                                <Save size={16} /> {editingNote ? "Update Note" : "Save Note"}
                             </button>
                         </form>
                     </div>

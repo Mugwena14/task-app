@@ -11,21 +11,31 @@ import {
 } from "../features/goals/goalSlice";
 import { logout } from "../features/auth/authSlice";
 import Spinner from "../components/Spinner";
-import { LogOut, Settings, ChevronDown, User, Plus, X, Trash2 } from "lucide-react";
+import {
+  LogOut,
+  Settings,
+  ChevronDown,
+  User,
+  Plus,
+  X,
+  Trash2,
+} from "lucide-react";
 import Header from "../components/Header";
 import AddTaskOptions from "../components/AddTaskOptions";
 import VoiceRecorder from "../components/VoiceRecorder";
-import BoardView from "../components/BoardView"; 
+import BoardView from "../components/BoardView";
 
 function Dashboard() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const { user } = useSelector((state) => state.auth);
-  const { goals, isLoading, isError, message } = useSelector((state) => state.goals);
+  const { goals, isLoading, isError, message } = useSelector(
+    (state) => state.goals
+  );
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [view, setView] = useState("list"); 
+  const [view, setView] = useState("list");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [text, setText] = useState("");
   const [goalToDelete, setGoalToDelete] = useState(null);
@@ -119,8 +129,12 @@ function Dashboard() {
                 className="w-8 h-8 rounded-full"
               />
               <div className="text-left">
-                <p className="text-sm font-medium text-gray-800">{user?.name || "User"}</p>
-                <p className="text-xs text-gray-500">{user?.email || "example@email.com"}</p>
+                <p className="text-sm font-medium text-gray-800">
+                  {user?.name || "User"}
+                </p>
+                <p className="text-xs text-gray-500">
+                  {user?.email || "example@email.com"}
+                </p>
               </div>
               <ChevronDown size={16} className="text-gray-500" />
             </button>
@@ -227,11 +241,13 @@ function Dashboard() {
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-sm">You have not set any goals.</p>
+                <p className="text-gray-500 text-sm">
+                  You have not set any goals.
+                </p>
               )}
             </div>
           ) : (
-            <BoardView goals={goals} onEdit={handleEditClick} onDelete={handleDeleteClick} />
+            <BoardView />
           )}
         </div>
 
@@ -300,8 +316,12 @@ function Dashboard() {
       {goalToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-lg p-6 w-96 text-center">
-            <h2 className="text-lg font-semibold text-gray-800 mb-3">Delete this task?</h2>
-            <p className="text-sm text-gray-500 mb-5">This action cannot be undone.</p>
+            <h2 className="text-lg font-semibold text-gray-800 mb-3">
+              Delete this task?
+            </h2>
+            <p className="text-sm text-gray-500 mb-5">
+              This action cannot be undone.
+            </p>
             <div className="flex justify-center gap-4">
               <button
                 onClick={cancelDelete}

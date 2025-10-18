@@ -18,6 +18,7 @@ app.use('/api/users', require('./routes/userRoutes'));
 app.use('/api/documents', require('./routes/documentRoutes'));
 app.use('/api/voice', require('./routes/voiceRoutes'));
 app.use('/api/notes', require('./routes/noteRoutes'));
+app.use('/api/search', require('./routes/searchRoutes'))
 
 // Serve frontend
 if (process.env.NODE_ENV === 'production') {

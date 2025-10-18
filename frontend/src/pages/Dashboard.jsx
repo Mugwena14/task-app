@@ -17,8 +17,11 @@ import {
   ChevronDown,
   User,
   Plus,
-  X,
   Trash2,
+  Circle,
+  CheckCircle2,
+  X,
+  Save,
 } from "lucide-react";
 import Header from "../components/Header";
 import AddTaskOptions from "../components/AddTaskOptions";
@@ -111,7 +114,7 @@ function Dashboard() {
       <Header />
 
       <main className="flex-1 p-6 overflow-y-auto">
-        {/* Header */}
+        {/* Top Section */}
         <div className="bg-white rounded-2xl shadow-sm px-6 py-4 mb-6 flex justify-between items-center">
           <h2 className="text-2xl font-semibold text-gray-800">
             Welcome back, {user?.name} 👋
@@ -204,16 +207,27 @@ function Dashboard() {
                     key={goal._id}
                     className="bg-gray-50 shadow-sm rounded-lg p-4 flex justify-between items-center"
                   >
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        checked={goal.completed || false}
-                        onChange={() => handleToggleComplete(goal)}
-                        className="w-5 h-5 rounded border-gray-300"
-                      />
+                    <div className="flex items-center gap-3 cursor-pointer">
+                      <div
+                        onClick={() => handleToggleComplete(goal)}
+                        className="transition-transform hover:scale-110"
+                      >
+                        {goal.completed ? (
+                          <CheckCircle2
+                            size={22}
+                            className="text-green-500 transition-all duration-200"
+                          />
+                        ) : (
+                          <Circle
+                            size={22}
+                            className="text-gray-400 hover:text-blue-500 transition-all duration-200"
+                          />
+                        )}
+                      </div>
+
                       <div>
                         <p
-                          className={`font-medium text-gray-800 ${
+                          className={`font-medium text-gray-800 transition-all duration-200 ${
                             goal.completed ? "line-through text-gray-400" : ""
                           }`}
                         >
@@ -224,6 +238,7 @@ function Dashboard() {
                         </p>
                       </div>
                     </div>
+
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleEditClick(goal)}
@@ -241,15 +256,79 @@ function Dashboard() {
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-sm">
-                  You have not set any goals.
-                </p>
+                <p className="text-gray-500 text-sm">You have not set any goals.</p>
               )}
             </div>
           ) : (
-            <BoardView />
+            <BoardView
+              goals={goals}
+              handleToggleComplete={handleToggleComplete}
+              handleEditClick={handleEditClick}
+              handleDeleteClick={handleDeleteClick}
+            />
           )}
         </div>
+
+        {/* Add / Edit Modal */}
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 animate-fadeIn">
+            <div className="bg-white p-6 rounded-2xl shadow-lg w-full max-w-md">
+              <h2 className="text-lg font-semibold mb-4">
+                {goalToEdit ? "Edit Task" : "Add Task"}
+              </h2>
+              <form onSubmit={handleAddTask} className="space-y-4">
+                <input
+                  type="text"
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter task..."
+                  autoFocus
+                />
+                <div className="flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="flex items-center gap-1 bg-gray-100 text-gray-700 px-3 py-2 rounded hover:bg-gray-200 transition"
+                  >
+                    <X size={16} /> Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex items-center gap-1 bg-blue-600 text-white px-3 py-2 rounded hover:bg-blue-700 transition"
+                  >
+                    <Save size={16} /> {goalToEdit ? "Save" : "Add"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Confirmation */}
+        {goalToDelete && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 animate-fadeIn">
+            <div className="bg-white p-6 rounded-2xl shadow-lg w-full max-w-sm text-center">
+              <p className="text-gray-700 mb-6">
+                Are you sure you want to delete this task?
+              </p>
+              <div className="flex justify-center gap-3">
+                <button
+                  onClick={cancelDelete}
+                  className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 transition"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Add Task Options */}
         <AddTaskOptions
@@ -276,69 +355,6 @@ function Dashboard() {
           />
         )}
       </main>
-
-      {/* Add/Edit Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-96 relative">
-            <button
-              onClick={() => {
-                setIsModalOpen(false);
-                setGoalToEdit(null);
-              }}
-              className="absolute top-3 right-3 text-gray-500 hover:text-gray-700"
-            >
-              <X size={20} />
-            </button>
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              {goalToEdit ? "Edit Task" : "Add New Task"}
-            </h2>
-            <form onSubmit={handleAddTask} className="space-y-4">
-              <input
-                type="text"
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder="Enter your task..."
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button
-                type="submit"
-                className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
-              >
-                {goalToEdit ? "Update Task" : "Add Task"}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {goalToDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-96 text-center">
-            <h2 className="text-lg font-semibold text-gray-800 mb-3">
-              Delete this task?
-            </h2>
-            <p className="text-sm text-gray-500 mb-5">
-              This action cannot be undone.
-            </p>
-            <div className="flex justify-center gap-4">
-              <button
-                onClick={cancelDelete}
-                className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                className="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

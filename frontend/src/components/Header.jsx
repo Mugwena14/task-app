@@ -30,7 +30,6 @@ function Header() {
     navigate("/login");
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (settingsRef.current && !settingsRef.current.contains(event.target)) {
@@ -160,7 +159,15 @@ function Header() {
         </button>
       </header>
 
-      {/* ======== Mobile Drawer Menu ======== */}
+      {/* ======== Mobile Blur Overlay ======== */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 backdrop-blur-md bg-white/20 z-30 md:hidden transition-all duration-300"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* ======== Mobile Drawer Menu (50% width) ======== */}
       <div
         className={`fixed top-0 left-0 h-full bg-white shadow-lg z-40 transform transition-transform duration-300 ease-in-out md:hidden ${
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"

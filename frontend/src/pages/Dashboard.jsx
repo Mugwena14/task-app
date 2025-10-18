@@ -14,7 +14,6 @@ import Spinner from "../components/Spinner";
 import {
   LogOut,
   Settings,
-  ChevronDown,
   User,
   Plus,
   Trash2,
@@ -22,6 +21,9 @@ import {
   CheckCircle2,
   X,
   Save,
+  List,
+  LayoutGrid,
+  Edit3,
 } from "lucide-react";
 import Header from "../components/Header";
 import AddTaskOptions from "../components/AddTaskOptions";
@@ -31,7 +33,6 @@ import BoardView from "../components/BoardView";
 function Dashboard() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
   const { user } = useSelector((state) => state.auth);
   const { goals, isLoading, isError, message } = useSelector(
     (state) => state.goals
@@ -45,7 +46,6 @@ function Dashboard() {
   const [goalToEdit, setGoalToEdit] = useState(null);
   const [showTaskOptions, setShowTaskOptions] = useState(false);
   const [showRecorder, setShowRecorder] = useState(false);
-
   const dropdownRef = useRef(null);
 
   const onLogout = () => {
@@ -55,8 +55,8 @@ function Dashboard() {
   };
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setIsDropdownOpen(false);
       }
     };
@@ -74,14 +74,12 @@ function Dashboard() {
   const handleAddTask = (e) => {
     e.preventDefault();
     if (text.trim() === "") return;
-
     if (goalToEdit) {
       dispatch(updateGoal({ id: goalToEdit._id, text }));
       setGoalToEdit(null);
     } else {
       dispatch(createGoal({ text }));
     }
-
     setText("");
     setIsModalOpen(false);
   };
@@ -93,14 +91,12 @@ function Dashboard() {
   };
 
   const handleDeleteClick = (goalId) => setGoalToDelete(goalId);
-
   const confirmDelete = () => {
     if (goalToDelete) {
       dispatch(deleteGoal(goalToDelete));
       setGoalToDelete(null);
     }
   };
-
   const cancelDelete = () => setGoalToDelete(null);
 
   const handleToggleComplete = (goal) => {
@@ -113,23 +109,30 @@ function Dashboard() {
     <div className="flex w-screen h-screen bg-gray-100 overflow-hidden">
       <Header />
 
-      <main className="flex-1 p-6 overflow-y-auto">
-        {/* Top Section */}
-        <div className="bg-white rounded-2xl shadow-sm px-6 py-4 mb-6 flex justify-between items-center">
-          <h2 className="text-2xl font-semibold text-gray-800">
+      <main className="flex-1 p-6 pt-20 md:pt-6 overflow-y-auto">
+        {/* ===== Top Section ===== */}
+        <div className="bg-white rounded-2xl shadow-sm px-6 py-3 mb-6 flex justify-between items-center">
+          {/* Desktop View */}
+          <h2 className="text-2xl font-semibold text-gray-800 hidden md:block">
             Welcome back, {user?.name} 👋
+          </h2>
+
+          {/* Mobile View */}
+          <h2 className="text-base font-semibold text-gray-800 md:hidden">
+            Welcome back, {user?.name?.split(" ")[0]} 👋
           </h2>
 
           {/* Profile Dropdown */}
           <div className="relative" ref={dropdownRef}>
+            {/* Desktop full view */}
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="flex items-center gap-3 bg-white border rounded-lg px-3 py-2 shadow-sm hover:shadow-md transition-all"
+              className="hidden md:flex items-center gap-3 bg-white border shadow-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
             >
               <img
                 src="https://i.pravatar.cc/40"
                 alt="Profile"
-                className="w-8 h-8 rounded-full"
+                className="w-10 h-10 rounded-full object-cover"
               />
               <div className="text-left">
                 <p className="text-sm font-medium text-gray-800">
@@ -139,11 +142,23 @@ function Dashboard() {
                   {user?.email || "example@email.com"}
                 </p>
               </div>
-              <ChevronDown size={16} className="text-gray-500" />
             </button>
 
+            {/* Mobile minimal avatar only */}
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex md:hidden rounded-full p-1.5 focus:outline-none focus:ring-2 focus:ring-blue-200"
+            >
+              <img
+                src="https://i.pravatar.cc/40"
+                alt="Profile"
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            </button>
+
+            {/* Dropdown Menu */}
             {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-10 animate-fadeIn">
+              <div className="absolute right-0 mt-2 w-48 bg-white border rounded-lg shadow-lg z-10 animate-fadeIn md:mt-2 md:right-0">
                 <button className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 flex items-center gap-2">
                   <User size={14} /> View Profile
                 </button>
@@ -161,11 +176,13 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* Tasks Section */}
+        {/* ===== Tasks Section ===== */}
         <div className="bg-white rounded-2xl shadow-sm p-6">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-semibold text-gray-800">My Tasks</h3>
-            <div className="flex items-center gap-3">
+
+            {/* Desktop Buttons */}
+            <div className="hidden md:flex items-center gap-3">
               <div className="flex gap-2">
                 <button
                   onClick={() => setView("list")}
@@ -188,7 +205,6 @@ function Dashboard() {
                   Board
                 </button>
               </div>
-
               <button
                 onClick={() => setShowTaskOptions(true)}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium shadow-md hover:shadow-lg hover:scale-105 transition-all"
@@ -196,9 +212,38 @@ function Dashboard() {
                 <Plus size={16} /> Add Task
               </button>
             </div>
+
+            {/* Mobile Icons */}
+            <div className="flex md:hidden gap-3">
+              <button
+                onClick={() => setView("list")}
+                className={`p-2 rounded-lg border ${
+                  view === "list" ? "bg-blue-600 text-white" : "text-gray-700"
+                }`}
+                aria-pressed={view === "list"}
+              >
+                <List size={18} />
+              </button>
+              <button
+                onClick={() => setView("board")}
+                className={`p-2 rounded-lg border ${
+                  view === "board" ? "bg-blue-600 text-white" : "text-gray-700"
+                }`}
+                aria-pressed={view === "board"}
+              >
+                <LayoutGrid size={18} />
+              </button>
+              <button
+                onClick={() => setShowTaskOptions(true)}
+                className="p-2 rounded-lg bg-blue-600 text-white"
+                aria-label="Add task"
+              >
+                <Plus size={18} />
+              </button>
+            </div>
           </div>
 
-          {/* Task List or Board */}
+          {/* ===== Task List / Board ===== */}
           {view === "list" ? (
             <div className="space-y-4">
               {goals.length > 0 ? (
@@ -227,7 +272,7 @@ function Dashboard() {
 
                       <div>
                         <p
-                          className={`font-medium text-gray-800 transition-all duration-200 ${
+                          className={`font-medium text-gray-800 ${
                             goal.completed ? "line-through text-gray-400" : ""
                           }`}
                         >
@@ -239,24 +284,45 @@ function Dashboard() {
                       </div>
                     </div>
 
-                    <div className="flex space-x-2">
+                    <div className="flex items-center space-x-2">
+                      {/* Desktop Buttons */}
                       <button
                         onClick={() => handleEditClick(goal)}
-                        className="text-sm bg-green-100 text-green-600 px-2 py-1 rounded hover:bg-green-200 transition"
+                        className="hidden md:flex items-center gap-2 text-sm bg-green-100 text-green-600 px-2 py-1 rounded hover:bg-green-200 transition"
+                        aria-label="Edit task"
                       >
-                        Edit
+                        <Edit3 size={14} /> <span>Edit</span>
                       </button>
                       <button
                         onClick={() => handleDeleteClick(goal._id)}
-                        className="text-sm bg-red-100 text-red-600 px-2 py-1 rounded hover:bg-red-200 transition flex items-center gap-1"
+                        className="hidden md:flex items-center gap-2 text-sm bg-red-100 text-red-600 px-2 py-1 rounded hover:bg-red-200 transition"
+                        aria-label="Delete task"
                       >
-                        <Trash2 size={14} /> Delete
+                        <Trash2 size={14} /> <span>Delete</span>
+                      </button>
+
+                      {/* Mobile Buttons */}
+                      <button
+                        onClick={() => handleEditClick(goal)}
+                        className="md:hidden p-2 rounded-lg bg-green-100 text-green-600 hover:bg-green-200"
+                        aria-label="Edit task"
+                      >
+                        <Edit3 size={16} />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClick(goal._id)}
+                        className="md:hidden p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200"
+                        aria-label="Delete task"
+                      >
+                        <Trash2 size={16} />
                       </button>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-sm">You have not set any goals.</p>
+                <p className="text-gray-500 text-sm">
+                  You have not set any goals.
+                </p>
               )}
             </div>
           ) : (
@@ -269,7 +335,7 @@ function Dashboard() {
           )}
         </div>
 
-        {/* Add / Edit Modal */}
+        {/* ===== Modals and Extras ===== */}
         {isModalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 animate-fadeIn">
             <div className="bg-white p-6 rounded-2xl shadow-lg w-full max-w-md">
@@ -305,7 +371,6 @@ function Dashboard() {
           </div>
         )}
 
-        {/* Delete Confirmation */}
         {goalToDelete && (
           <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 animate-fadeIn">
             <div className="bg-white p-6 rounded-2xl shadow-lg w-full max-w-sm text-center">
@@ -330,7 +395,6 @@ function Dashboard() {
           </div>
         )}
 
-        {/* Add Task Options */}
         <AddTaskOptions
           open={showTaskOptions}
           onClose={() => setShowTaskOptions(false)}
@@ -346,7 +410,6 @@ function Dashboard() {
           }}
         />
 
-        {/* Voice Recorder */}
         {showRecorder && (
           <VoiceRecorder
             user={user}

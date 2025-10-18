@@ -271,13 +271,7 @@ function Dashboard() {
                       </div>
 
                       <div>
-                        <p
-                          className={`font-medium text-gray-800 ${
-                            goal.completed ? "line-through text-gray-400" : ""
-                          }`}
-                        >
-                          {goal.text}
-                        </p>
+                        <p className="font-medium text-gray-800">{goal.text}</p>
                         <p className="text-xs text-gray-500">
                           {new Date(goal.createdAt).toLocaleString("en-US")}
                         </p>
@@ -320,9 +314,7 @@ function Dashboard() {
                   </div>
                 ))
               ) : (
-                <p className="text-gray-500 text-sm">
-                  You have not set any goals.
-                </p>
+                <p className="text-gray-500 text-sm">You have not set any goals.</p>
               )}
             </div>
           ) : (

@@ -36,9 +36,13 @@ You can create, edit, and delete tasks, add supporting notes and documents, reco
 ## ⚙️ Setup Instructions
 
 ### 1. Clone the repository
-```bash
-git clone https://github.com/langavi/taskflow.git
-cd taskflow
+- git clone https://github.com/langavi/taskflow.git
+- cd taskflow
+
+
+---
+
+### 2. Install dependencies
 
 # Install backend dependencies
 cd backend
@@ -48,10 +52,18 @@ npm install
 cd ../frontend
 npm install
 
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_secret_key
-OPENAI_API_KEY=your_openai_api_key
+---
+
+### Environment Variables
+
+- PORT=5000
+- MONGO_URI=your_mongodb_connection_string
+- JWT_SECRET=your_secret_key
+- OPENAI_API_KEY=your_openai_api_key
+
+---
+
+### Project Structure
 
 taskflow/
 ├── backend/
@@ -67,6 +79,8 @@ taskflow/
 │   │   ├── pages/
 │   │   └── App.js
 └── README.md
+
+---
 
 # 💡 What Makes This Project Special
 This app represents my passion for clean UI, scalable architecture, and real-world functionality.

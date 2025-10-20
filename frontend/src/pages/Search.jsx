@@ -46,13 +46,12 @@ function SearchPage() {
   };
 
   return (
-    <div className="flex flex-col w-screen h-screen bg-gray-100 overflow-hidden">
+    <div className="flex w-screen h-screen bg-gray-100 overflow-hidden">
       <Header />
 
-      <main className="flex-1 pt-24 px-4 sm:px-6 overflow-y-auto">
-        {/* Header Section */}
+      <main className="flex-1 p-6 pt-20 overflow-y-auto">
+        {/* ===== Header Section ===== */}
         <div className="bg-white rounded-2xl shadow-sm px-4 py-4 mb-4 flex items-center gap-3">
-          {/* Back Icon */}
           <button
             onClick={() => navigate(-1)}
             className="text-blue-600 hover:text-blue-700 transition p-1"
@@ -60,15 +59,13 @@ function SearchPage() {
           >
             <ArrowLeft size={20} />
           </button>
-
-          {/* Title */}
           <h2 className="text-lg sm:text-2xl font-semibold text-gray-800">
             Smart Search
           </h2>
         </div>
 
-        {/* Search Box */}
-        <div className="bg-white p-3 sm:p-6 rounded-2xl shadow-sm flex flex-col sm:flex-row items-center gap-2 sm:gap-3">
+        {/* ===== Search Box ===== */}
+        <div className="bg-white p-3 sm:p-6 rounded-2xl shadow-sm flex flex-col sm:flex-row items-center gap-2 sm:gap-3 mb-4">
           <div className="flex items-center flex-1 bg-gray-50 rounded-full px-3 py-2 w-full">
             <Search className="text-gray-500 mr-2" />
             <input
@@ -97,22 +94,21 @@ function SearchPage() {
           </button>
         </div>
 
+        {/* ===== Results Section ===== */}
         <AnimatePresence>
           {results && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="mt-4 bg-white border rounded-xl shadow-sm p-4 sm:p-6 space-y-3 sm:space-y-5"
+              className="bg-white border rounded-xl shadow-sm p-4 sm:p-6 space-y-3 sm:space-y-5"
             >
-              {/* AI Summary */}
               {summary && (
                 <div className="bg-blue-50 border-l-4 border-blue-400 p-3 rounded-lg text-sm">
                   {summary}
                 </div>
               )}
 
-              {/* Results */}
               <div className="space-y-3 sm:space-y-4 text-sm">
                 {results.goals?.length > 0 && (
                   <>

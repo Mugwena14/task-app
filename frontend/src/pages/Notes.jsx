@@ -11,6 +11,7 @@ import {
     reset,
 } from "../features/notes/noteSlice";
 import { logout } from "../features/auth/authSlice";
+import { fetchProfile } from "../features/profile/profileSlice";
 import {
     LogOut,
     Settings,
@@ -31,6 +32,7 @@ function Notes() {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { user } = useSelector((state) => state.auth);
+    const { profile } = useSelector((state) => state.profile || {});
     const { notes, isLoading, isError, message } = useSelector((state) => state.notes);
 
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -61,7 +63,10 @@ function Notes() {
     useEffect(() => {
         if (isError) console.error(message);
         if (!user) navigate("/login");
-        else dispatch(getNotes());
+        else {
+            dispatch(getNotes());
+            dispatch(fetchProfile());
+        }
         return () => dispatch(reset());
     }, [user, navigate, isError, message, dispatch]);
 
@@ -147,7 +152,10 @@ function Notes() {
                             className="hidden md:flex items-center gap-3 bg-white border shadow-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
                         >
                             <img
-                                src="https://i.pravatar.cc/40"
+                                src={
+                                    profile?.avatar ||
+                                    "https://cdn-icons-png.flaticon.com/512/3177/3177440.png"
+                                }
                                 alt="Profile"
                                 className="w-10 h-10 rounded-full object-cover"
                             />
@@ -163,7 +171,10 @@ function Notes() {
                             className="flex md:hidden rounded-full p-1.5 focus:outline-none focus:ring-2 focus:ring-blue-200"
                         >
                             <img
-                                src="https://i.pravatar.cc/40"
+                                src={
+                                    profile?.avatar ||
+                                    "https://cdn-icons-png.flaticon.com/512/3177/3177440.png"
+                                }
                                 alt="Profile"
                                 className="w-10 h-10 rounded-full object-cover"
                             />

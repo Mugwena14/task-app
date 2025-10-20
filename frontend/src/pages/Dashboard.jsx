@@ -29,11 +29,13 @@ import Header from "../components/Header";
 import AddTaskOptions from "../components/AddTaskOptions";
 import VoiceRecorder from "../components/VoiceRecorder";
 import BoardView from "../components/BoardView";
+import { fetchProfile } from "../features/profile/profileSlice";
 
 function Dashboard() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const { profile } = useSelector((state) => state.profile || {});
   const { goals, isLoading, isError, message } = useSelector(
     (state) => state.goals
   );
@@ -67,7 +69,10 @@ function Dashboard() {
   useEffect(() => {
     if (isError) console.error(message);
     if (!user) navigate("/login");
-    else dispatch(getGoals());
+    else {
+      dispatch(getGoals());
+      dispatch(fetchProfile());
+    }
     return () => dispatch(reset());
   }, [user, navigate, isError, message, dispatch]);
 
@@ -130,7 +135,10 @@ function Dashboard() {
               className="hidden md:flex items-center gap-3 bg-white border shadow-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
             >
               <img
-                src="https://i.pravatar.cc/40"
+                src={
+                  profile?.avatar ||
+                  "https://cdn-icons-png.flaticon.com/512/3177/3177440.png"
+                }
                 alt="Profile"
                 className="w-10 h-10 rounded-full object-cover"
               />
@@ -150,7 +158,10 @@ function Dashboard() {
               className="flex md:hidden rounded-full p-1.5 focus:outline-none focus:ring-2 focus:ring-blue-200"
             >
               <img
-                src="https://i.pravatar.cc/40"
+                src={
+                  profile?.avatar ||
+                  "https://cdn-icons-png.flaticon.com/512/3177/3177440.png"
+                }
                 alt="Profile"
                 className="w-10 h-10 rounded-full object-cover"
               />

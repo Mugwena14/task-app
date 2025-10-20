@@ -8,6 +8,7 @@ import {
   reset,
 } from "../features/documents/documentSlice";
 import { logout } from "../features/auth/authSlice";
+import { fetchProfile } from "../features/profile/profileSlice";
 import Spinner from "../components/Spinner";
 import {
   LogOut,
@@ -27,6 +28,7 @@ function Documents() {
   const dispatch = useDispatch();
 
   const { user } = useSelector((state) => state.auth);
+  const { profile } = useSelector((state) => state.profile || {});
   const { documents, isLoading, isError, message } = useSelector(
     (state) => state.documents
   );
@@ -57,7 +59,10 @@ function Documents() {
   useEffect(() => {
     if (isError) console.error(message);
     if (!user) navigate("/login");
-    else dispatch(getDocuments());
+    else {
+      dispatch(getDocuments());
+      dispatch(fetchProfile());
+    }
     return () => dispatch(reset());
   }, [user, navigate, isError, message, dispatch]);
 
@@ -112,7 +117,10 @@ function Documents() {
               className="hidden md:flex items-center gap-3 bg-white border rounded-lg px-3 py-2 shadow-sm hover:shadow-md transition-all"
             >
               <img
-                src="https://i.pravatar.cc/40"
+                src={
+                  profile?.avatar ||
+                  "https://cdn-icons-png.flaticon.com/512/3177/3177440.png"
+                }
                 alt="Profile"
                 className="w-8 h-8 rounded-full"
               />
@@ -133,7 +141,10 @@ function Documents() {
               className="flex md:hidden items-center justify-center rounded-full p-1.5 focus:outline-none focus:ring-2 focus:ring-blue-200"
             >
               <img
-                src="https://i.pravatar.cc/40"
+                src={
+                  profile?.avatar ||
+                  "https://cdn-icons-png.flaticon.com/512/3177/3177440.png"
+                }
                 alt="Profile"
                 className="w-10 h-10 rounded-full object-cover"
               />

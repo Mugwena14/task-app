@@ -36,34 +36,36 @@ You can create, edit, and delete tasks, add supporting notes and documents, reco
 ## ⚙️ Setup Instructions
 
 ### 1. Clone the repository
+```bash
 - git clone https://github.com/langavi/taskflow.git
 - cd taskflow
-
+```
 
 ---
 
 ### 2. Install dependencies
-
-# Install backend dependencies
+```bash
 cd backend
 npm install
 
-# Install frontend dependencies
 cd ../frontend
 npm install
+```
 
 ---
 
 ### Environment Variables
-
+```bash
 - PORT=5000
 - MONGO_URI=your_mongodb_connection_string
 - JWT_SECRET=your_secret_key
 - OPENAI_API_KEY=your_openai_api_key
+```
 
 ---
 
 ### Project Structure
+```bash
 
 taskflow/
 ├── backend/
@@ -79,6 +81,7 @@ taskflow/
 │   │   ├── pages/
 │   │   └── App.js
 └── README.md
+```
 
 ---
 
@@ -94,16 +97,16 @@ I focused on:
 - Ensuring a responsive, modern user experience that feels natural on any device.
 
 # 🔮 Future Improvements
-📱 Develop a mobile version using React Native.
-🧑‍🤝‍🧑 Add team collaboration features for shared task boards.
-🌗 Introduce a dark/light mode toggle for better accessibility.
-📅 Integrate a calendar view for scheduling and reminders.
-💬 Implement real-time notifications for task updates.
+- 📱 Develop a mobile version using React Native.
+- 🧑‍🤝‍🧑 Add team collaboration features for shared task boards.
+- 🌗 Introduce a dark/light mode toggle for better accessibility.
+- 📅 Integrate a calendar view for scheduling and reminders.
+- 💬 Implement real-time notifications for task updates.
 
 # 👨‍💻 About the Developer
 Hi, I’m Langavi, a junior full-stack developer passionate about creating smart, intuitive digital experiences.
-I love building tools that make people’s lives easier — combining logic, design, and innovation.
+I love building tools that make people’s lives easier, combining logic, design, and innovation.
 
-💬 Ask me about: React, Node.js, MongoDB, and API design
-🌍 Portfolio: https://langavi.dev
-📫 Contact: langavi.dev@gmail.com
+- 💬 Ask me about: React, Redux, Node.js, MongoDB, and API design
+- 🌍 Portfolio: [https://langavi.dev](https://langavi-portfolio.vercel.app/)
+- 📫 Contact: mlangaviclyde@gmail.com

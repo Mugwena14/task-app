@@ -1,6 +1,6 @@
-# 🧭 Taskora – Smart Task Management App
+# 🧭 Rexium – Smart Task Management App
 
-**Taskora** is a full-stack productivity platform built to help you stay organized and work smarter.  
+**Rexium** is a full-stack productivity platform built to help you stay organized and work smarter.  
 You can create, edit, and delete tasks, add supporting notes and documents, record voice tasks, and even summarize your content using AI — all in one sleek, minimalistic interface.
 
 ---
